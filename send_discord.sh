@@ -51,11 +51,17 @@ send_file() {
           -F "file=@$filepath" \
           "$WEBHOOK_URL" > /dev/null 2>&1
     else
-        # If the file is larger than the limit, split and send in chunks
-        echo "File is larger than 20MB, splitting and sending in chunks..."
+        extension="${filepath##*.}"
         mkdir -p "$temp_dir"
-        filename=$(basename "$filepath")
-        split -b "$max_size" "$filepath" "$temp_dir/${filename}_part_" --additional-suffix=.txt
+        if [ "$extension" = "zip" ]; then
+            zipsplit -n $(( 20 * 1024 * 1024 )) $filepath -b "$temp_dir/"
+            echo "Extension is zip, using 'zipsplit'"
+        else
+            # If the file is larger than the limit, split and send in chunks
+            echo "File is larger than 20MB, splitting and sending in chunks..."
+            filename=$(basename "$filepath")
+            split -b "$max_size" "$filepath" "$temp_dir/${filename}_part_" --additional-suffix=$extension
+        fi
 
         for file_chunk in "$temp_dir"/*; do
             echo "Sending chunk: $file_chunk"
