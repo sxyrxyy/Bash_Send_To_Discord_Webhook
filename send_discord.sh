@@ -51,9 +51,9 @@ send_file() {
           -F "file=@$filepath" \
           "$WEBHOOK_URL" > /dev/null 2>&1
     else
-        extension="${filepath##*.}"
+        extension=".${filepath##*.}"
         mkdir -p "$temp_dir"
-        if [ "$extension" = "zip" ]; then
+        if [ "$extension" = ".zip" ]; then
             zipsplit -n $(( 20 * 1024 * 1024 )) $filepath -b "$temp_dir/"
             echo "Extension is zip, using 'zipsplit'"
         else
